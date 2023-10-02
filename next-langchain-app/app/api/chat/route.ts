@@ -22,14 +22,6 @@ import { initializeAgentExecutorWithOptions } from 'langchain/agents'
 // Tools
 import { WikipediaQueryRun, SerpAPI } from "langchain/tools";
 
-// Chain
-import {
-  loadQAStuffChain,
-  loadQAMapReduceChain,
-  loadQARefineChain
-} from "langchain/chains";
-import { Document } from "langchain/document";
-
 // zod library for schema validation
 import * as z from "zod";
 
@@ -177,7 +169,7 @@ const fetchSGFoodPlaces = new DynamicStructuredTool({
   schema: z.object({
     searchType: z.string().default('keyword'),
     searchValues: z.string().default('Singapore%20food'),
-    limit: z.string().optional().default('10')
+    limit: z.string().optional().default('5')
   }),
   func: async (options) => {
     console.log('Triggered fetchSGFoodPlaces function with options: ', options);
@@ -214,7 +206,7 @@ const fetchSGBars = new DynamicStructuredTool({
   schema: z.object({
     searchType: z.string().default('keyword'),
     searchValues: z.string().default('Singapore%20bar'),
-    limit: z.string().optional().default('10')
+    limit: z.string().optional().default('5')
   }),
   func: async (options) => {
     console.log('Triggered fetchSGBars function with options: ', options);
@@ -292,7 +284,7 @@ export async function POST(req: Request, res: Response) {
   const input = messages[messages.length - 1].content;
 
   // Set up tools and agent
-  const tools = [wikipediaQuery, foo, fetchCryptoPrice, fetchSGFoodPlaces, fetchSGBars, fetchSGTours, compareDistance, serpApi];
+  const tools = [foo, fetchCryptoPrice, fetchSGFoodPlaces, fetchSGBars, fetchSGTours, compareDistance, serpApi]; // excluded wikipediaQuery
   const executor = await initializeAgentExecutorWithOptions(tools, llm, {
     agentType: "openai-functions",
     verbose: true,

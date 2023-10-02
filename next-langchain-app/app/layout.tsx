@@ -15,7 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <p>This bot calls TIH apis for food, bars and tours. Also does web search.</p>
+        {children}
+      </body>
     </html>
   );
 }
