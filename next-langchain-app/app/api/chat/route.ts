@@ -292,7 +292,7 @@ export async function POST(req: Request, res: Response) {
   const input = messages[messages.length - 1].content;
 
   // Set up tools and agent
-  const tools = [wikipediaQuery, foo, fetchCryptoPrice, fetchSGFoodPlaces, fetchSGTours, compareDistance, serpApi];
+  const tools = [wikipediaQuery, foo, fetchCryptoPrice, fetchSGFoodPlaces, fetchSGBars, fetchSGTours, compareDistance, serpApi];
   const executor = await initializeAgentExecutorWithOptions(tools, llm, {
     agentType: "openai-functions",
     verbose: true,
