@@ -34,7 +34,7 @@ export const runtime = 'edge';
 
 const llm = new ChatOpenAI({
   modelName: "gpt-3.5-turbo-16k",
-  temperature: 0.5,
+  temperature: 0.1,
   streaming: true,
 });
 
@@ -77,11 +77,10 @@ const wikipediaQuery = new WikipediaQueryRun({
 })
 
 // Tool for web search
-const vs = "https://www.visitsingapore.com/en/";
 const serpApi = new SerpAPI(process.env.SERPAPI_API_KEY, {
   hl: "en",
   gl: "sg",
-}, vs)
+})
 
 // // Tool for SG travel search
 // const vs = "https://www.visitsingapore.com/en/";
@@ -103,7 +102,7 @@ const serpApi = new SerpAPI(process.env.SERPAPI_API_KEY, {
 //   }
 // })
 
-// Simple custom tool
+// Tool for foo
 const foo = new DynamicTool({
   name: 'foo',
   description: 'returns the answer to what foo is',
@@ -113,7 +112,7 @@ const foo = new DynamicTool({
   }
 })
 
-// Structured custom tools
+// Tool for crypto price
 const fetchCryptoPrice = new DynamicStructuredTool({
   name: 'fetchCryptoPrice',
   description: 'Fetches the current price of a specified cryptocurrency',
@@ -134,6 +133,7 @@ const fetchCryptoPrice = new DynamicStructuredTool({
   }
 })
 
+// Tool for comparing distances
 const compareDistance = new DynamicStructuredTool({
   name: 'compareDistance',
   description: 'Compares the distance between different places based on their coordinates',
@@ -160,31 +160,38 @@ const compareDistance = new DynamicStructuredTool({
 // Tampinese Mall = 1.3527191448028362, 103.94466246761209
 // What is the distance between these two places:  Heartland Mall = 1.3596942407588961, 103.88511816761205 Tampinese Mall = 1.3527191448028362, 103.94466246761209
 
+// ------------- TOOLS FOR TIH ------------
+
+// Tool for food places
 const fetchSGFoodPlaces = new DynamicStructuredTool({
   name: 'fetchSGFoodPlaces',
   description: 'Fetches a listing of food places in Singapore based on specified keywords',
   schema: z.object({
     searchType: z.string().default('keyword'),
     searchValues: z.string().default('Singapore%20food'),
-    limit: z.string().optional().default('1')
+    limit: z.string().optional().default('5')
   }),
   func: async (options) => {
     console.log('Triggered fetchSGFoodPlaces function with options: ', options);
     const { searchType, searchValues, limit } = options;
     const url = `https://api.stb.gov.sg/content/food-beverages/v2/search?searchType=${searchType}&searchValues=${searchValues}&limit=${limit}`;
-    // https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd
     console.log(`Calling ${url}`);
 
     try {
       const response = await fetch(url, {
         headers: {
-          "X-API-Key": "9ULYL7YXUfoeqQF2jpTa1vmz2JFsLl50"
+          "X-API-KEY": "9ULYL7YXUfoeqQF2jpTa1vmz2JFsLl50"
         },
       });
-      const data = await response.json();
+      const data = await response.json();     
       const list = data.data;
-      // const foodPlaces = list.map((entry: { name: string; }) => entry.name)
-      return list;
+      console.log(`List: ${list}`);
+      
+      const tihContent = list.map((entry: { name: string; body: string; companyName: string; officialWebsite: string; pricing: string }) => `Name: ${entry.name}\nBody: ${entry.body}\nCompany Name: ${entry.companyName}\nWebsite: ${entry.officialWebsite}\nPricing: ${entry.pricing}`).join('\n\n');
+      
+      console.log(tihContent);
+      
+      return tihContent;
 
     } catch (error) {
       console.error(error);
@@ -192,9 +199,10 @@ const fetchSGFoodPlaces = new DynamicStructuredTool({
   }
 })
 
+// Tool for tours
 const fetchSGTours = new DynamicStructuredTool({
   name: 'fetchSGTours',
-  description: 'Fetches a listing of tours in Singapore based on specified keywords. For website links, enclose them in <a></a> tags in html.',
+  description: 'Fetches a listing of tours in Singapore based on specified keywords.',
   schema: z.object({
     searchType: z.string().default('keyword'),
     searchValues: z.string().default('Marina%20Bay'),
@@ -216,11 +224,11 @@ const fetchSGTours = new DynamicStructuredTool({
       const list = data.data;
       console.log(`List: ${list}`);
       
-      const tourList = list.map((entry: { name: string; body: string; companyName: string; officialWebsite: string; pricing: string }) => `Name: ${entry.name}\nBody: ${entry.body}\nCompany Name: ${entry.companyName}\nWebsite: ${entry.officialWebsite}\nPricing: ${entry.pricing}`).join('\n\n');
+      const tihContent = list.map((entry: { name: string; body: string; companyName: string; officialWebsite: string; pricing: string }) => `Name: ${entry.name}\nBody: ${entry.body}\nCompany Name: ${entry.companyName}\nWebsite: ${entry.officialWebsite}\nPricing: ${entry.pricing}`).join('\n\n');
       
-      console.log(tourList);
+      console.log(tihContent);
       
-      return tourList;
+      return tihContent;
 
     } catch (error) {
       console.error(error);
