@@ -22,6 +22,14 @@ import { initializeAgentExecutorWithOptions } from 'langchain/agents'
 // Tools
 import { WikipediaQueryRun, SerpAPI } from "langchain/tools";
 
+// Chain
+import {
+  loadQAStuffChain,
+  loadQAMapReduceChain,
+  loadQARefineChain
+} from "langchain/chains";
+import { Document } from "langchain/document";
+
 // zod library for schema validation
 import * as z from "zod";
 
@@ -169,7 +177,7 @@ const fetchSGFoodPlaces = new DynamicStructuredTool({
   schema: z.object({
     searchType: z.string().default('keyword'),
     searchValues: z.string().default('Singapore%20food'),
-    limit: z.string().optional().default('5')
+    limit: z.string().optional().default('10')
   }),
   func: async (options) => {
     console.log('Triggered fetchSGFoodPlaces function with options: ', options);
@@ -183,21 +191,59 @@ const fetchSGFoodPlaces = new DynamicStructuredTool({
           "X-API-KEY": "9ULYL7YXUfoeqQF2jpTa1vmz2JFsLl50"
         },
       });
-      const data = await response.json();     
+      const data = await response.json();
       const list = data.data;
       console.log(`List: ${list}`);
-      
-      const tihContent = list.map((entry: { name: string; body: string; companyName: string; officialWebsite: string; pricing: string }) => `Name: ${entry.name}\nBody: ${entry.body}\nCompany Name: ${entry.companyName}\nWebsite: ${entry.officialWebsite}\nPricing: ${entry.pricing}`).join('\n\n');
-      
-      console.log(tihContent);
-      
-      return tihContent;
+
+      const foodContent = list.map((entry: { name: string; body: string; address: any; streetName: any; nearestMrtStation: string}) => `Name: ${entry.name}\nBody: ${entry.body}\nAddress: ${entry.address.streetName}\nNearest MRT: ${entry.nearestMrtStation}`).join('\n\n');
+
+      console.log(foodContent);
+
+      return foodContent;
 
     } catch (error) {
       console.error(error);
     }
   }
 })
+
+// Tool for bars
+const fetchSGBars = new DynamicStructuredTool({
+  name: 'fetchSGBars',
+  description: 'Fetches a listing of bars in Singapore based on specified keywords',
+  schema: z.object({
+    searchType: z.string().default('keyword'),
+    searchValues: z.string().default('Singapore%20bar'),
+    limit: z.string().optional().default('10')
+  }),
+  func: async (options) => {
+    console.log('Triggered fetchSGBars function with options: ', options);
+    const { searchType, searchValues, limit } = options;
+    const url = `https://api.stb.gov.sg/content/bars-clubs/v2/search?searchType=${searchType}&searchValues=${searchValues}&limit=${limit}`;
+    console.log(`Calling ${url}`);
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "X-API-KEY": "9ULYL7YXUfoeqQF2jpTa1vmz2JFsLl50"
+        },
+      });
+      const data = await response.json();
+      const list = data.data;
+      console.log(`List: ${list}`);
+
+      const barContent = list.map((entry: { name: string; body: string; address: any; streetName: any; nearestMrtStation: string}) => `Name: ${entry.name}\nBody: ${entry.body}\nAddress: ${entry.address.streetName}\nNearest MRT: ${entry.nearestMrtStation}`).join('\n\n');
+
+      console.log(barContent);
+
+      return barContent;
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+})
+
 
 // Tool for tours
 const fetchSGTours = new DynamicStructuredTool({
@@ -220,15 +266,15 @@ const fetchSGTours = new DynamicStructuredTool({
           "X-API-KEY": "9ULYL7YXUfoeqQF2jpTa1vmz2JFsLl50"
         },
       });
-      const data = await response.json();     
+      const data = await response.json();
       const list = data.data;
       console.log(`List: ${list}`);
-      
-      const tihContent = list.map((entry: { name: string; body: string; companyName: string; officialWebsite: string; pricing: string }) => `Name: ${entry.name}\nBody: ${entry.body}\nCompany Name: ${entry.companyName}\nWebsite: ${entry.officialWebsite}\nPricing: ${entry.pricing}`).join('\n\n');
-      
-      console.log(tihContent);
-      
-      return tihContent;
+
+      const tourContent = list.map((entry: { name: string; body: string; companyName: string; officialWebsite: string; pricing: string }) => `Name: ${entry.name}\nBody: ${entry.body}\nCompany Name: ${entry.companyName}\nWebsite: ${entry.officialWebsite}\nPricing: ${entry.pricing}`).join('\n\n');
+
+      console.log(tourContent);
+
+      return tourContent;
 
     } catch (error) {
       console.error(error);
